@@ -206,7 +206,7 @@ export default function BarangKeluarPage() {
                   {rows.map((row, idx) => {
                     const selected = items.find(i => i.id === row.itemId);
                     return (
-                      <div key={idx} className="grid grid-cols-[1fr_90px_32px] gap-2 items-center">
+                      <div key={idx} className="grid grid-cols-[1fr_90px_32px] gap-2 items-start">
                         <select
                           className="h-9 rounded-md border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-ring"
                           value={row.itemId} onChange={e => handleRowChange(idx, "itemId", e.target.value)} required
@@ -216,15 +216,18 @@ export default function BarangKeluarPage() {
                             <option key={i.id} value={i.id}>{i.name} (stok: {i.stock} {i.unit})</option>
                           ))}
                         </select>
-                        <div className="relative">
+                        <div>
                           <Input
-                            type="number" min={1} max={selected?.stock ?? 999} placeholder="Qty"
-                            value={row.quantity} onChange={e => handleRowChange(idx, "quantity", e.target.value)}
+                            type="number" min={1} max={selected?.stock ?? 999}
+                            placeholder="Qty"
+                            value={row.quantity}
+                            onChange={e => handleRowChange(idx, "quantity", e.target.value)}
+                            onFocus={e => e.target.select()}
                             className="h-9 text-sm" required
                           />
                           {selected && (
-                            <span className="absolute -bottom-4 left-0 text-[10px] text-muted-foreground">
-                              max {selected.stock}
+                            <span className="block text-[10px] text-muted-foreground mt-0.5 pl-1">
+                              maks {selected.stock} {selected.unit}
                             </span>
                           )}
                         </div>

@@ -214,31 +214,43 @@ export default function BarangMasukPage() {
                 </div>
 
                 <div className="space-y-2">
-                  {rows.map((row, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_80px_100px_32px] gap-2 items-center">
-                      <select
-                        className="h-9 rounded-md border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-ring"
-                        value={row.itemId} onChange={e => handleRowChange(idx, "itemId", e.target.value)} required
-                      >
-                        <option value="">Pilih barang...</option>
-                        {items.map(i => <option key={i.id} value={i.id}>{i.name} (stok: {i.stock})</option>)}
-                      </select>
-                      <Input
-                        type="number" min={1} placeholder="Qty"
-                        value={row.quantity} onChange={e => handleRowChange(idx, "quantity", e.target.value)}
-                        className="h-9 text-sm" required
-                      />
-                      <Input
-                        type="number" min={0} placeholder="Harga"
-                        value={row.price} onChange={e => handleRowChange(idx, "price", e.target.value)}
-                        className="h-9 text-sm" required
-                      />
-                      <button type="button" onClick={() => removeRow(idx)} disabled={rows.length === 1}
-                        className="flex h-9 w-8 items-center justify-center text-muted-foreground hover:text-destructive disabled:opacity-30 cursor-pointer">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
+                  {rows.map((row, idx) => {
+                    const selected = items.find(i => i.id === row.itemId);
+                    return (
+                      <div key={idx} className="grid grid-cols-[1fr_80px_100px_32px] gap-2 items-start">
+                        <select
+                          className="h-9 rounded-md border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-ring"
+                          value={row.itemId} onChange={e => handleRowChange(idx, "itemId", e.target.value)} required
+                        >
+                          <option value="">Pilih barang...</option>
+                          {items.map(i => <option key={i.id} value={i.id}>{i.name} (stok: {i.stock})</option>)}
+                        </select>
+                        <div>
+                          <Input
+                            type="number" min={1} placeholder="Qty"
+                            value={row.quantity} onChange={e => handleRowChange(idx, "quantity", e.target.value)}
+                            onFocus={e => e.target.select()}
+                            className="h-9 text-sm" required
+                          />
+                          {selected && (
+                            <span className="block text-[10px] text-muted-foreground mt-0.5 pl-1">
+                              stok: {selected.stock} {selected.unit}
+                            </span>
+                          )}
+                        </div>
+                        <Input
+                          type="number" min={0} placeholder="Harga"
+                          value={row.price} onChange={e => handleRowChange(idx, "price", e.target.value)}
+                          onFocus={e => e.target.select()}
+                          className="h-9 text-sm" required
+                        />
+                        <button type="button" onClick={() => removeRow(idx)} disabled={rows.length === 1}
+                          className="flex h-9 w-8 items-center justify-center text-muted-foreground hover:text-destructive disabled:opacity-30 cursor-pointer">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <p className="text-xs text-muted-foreground text-right">

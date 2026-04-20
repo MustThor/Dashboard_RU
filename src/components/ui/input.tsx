@@ -2,7 +2,14 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, onFocus, ...props }, ref) => {
+    // Untuk input angka: select semua teks saat diklik/difokus,
+    // sehingga user langsung bisa ketik tanpa hapus nilai lama (misal: 0)
+    function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
+      if (type === "number") e.target.select();
+      onFocus?.(e);
+    }
+
     return (
       <input
         type={type}
@@ -11,6 +18,7 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
           className
         )}
         ref={ref}
+        onFocus={handleFocus}
         {...props}
       />
     );
