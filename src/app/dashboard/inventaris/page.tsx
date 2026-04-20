@@ -18,7 +18,7 @@ import {
   Dialog, DialogContent, DialogHeader,
   DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { Search, Plus, Package, Download, RefreshCw, X, Pencil } from "lucide-react";
+import { Search, Plus, Package, Download, RefreshCw, X, Pencil, Scale, MapPin, Tag, Layers, Trash2 } from "lucide-react";
 import { formatRupiah, formatAngka, getStatusDisplayName } from "@/lib/utils";
 import type { Item, Category, Location } from "@/types";
 import { STATUS_BADGE_VARIANT, hasPermission, type Role } from "@/types";
@@ -79,7 +79,12 @@ export default function InventarisPage() {
   const { data: session } = useSession();
   const canCreate = hasPermission((session?.user?.role ?? "VIEWER") as Role, "inventory:create");
   const canEdit   = hasPermission((session?.user?.role ?? "VIEWER") as Role, "inventory:edit");
+  const canDelete = hasPermission((session?.user?.role ?? "VIEWER") as Role, "inventory:delete");
   const [editingId, setEditingId]           = useState<string | null>(null);
+  const [selectedItem, setSelectedItem]     = useState<Item | null>(null);
+  const [confirmId, setConfirmId]           = useState<string | null>(null);
+  const [deleting, setDeleting]             = useState(false);
+  const [deleteErr, setDeleteErr]           = useState("");
   const [form, setForm]                     = useState<ItemFormData>(EMPTY_FORM);
   const [submitting, setSubmitting]         = useState(false);
   const [error, setError]                   = useState("");
@@ -207,6 +212,21 @@ export default function InventarisPage() {
     }
   }
 
+  async function deleteItem(id: string) {
+    setDeleting(true); setDeleteErr("");
+    try {
+      const res = await fetch("/api/items", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json();
+      if (!json.success) { setDeleteErr(json.error); return; }
+      setConfirmId(null);
+      if (selectedItem?.id === id) setSelectedItem(null);
+      fetchItems();
+    } finally { setDeleting(false); }
+  }
   // ── Render ─────────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -299,12 +319,12 @@ export default function InventarisPage() {
                 <TableHead className="text-right">Stok</TableHead>
                 <TableHead className="text-right">Harga</TableHead>
                 <TableHead>Status</TableHead>
-                {canEdit && <TableHead className="text-right">Aksi</TableHead>}
+                {(canEdit || canDelete) && <TableHead className="text-right">Aksi</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map(item => (
-                <TableRow key={item.id}>
+                <TableRow key={item.id} className="cursor-pointer hover:bg-muted/40" onClick={() => setSelectedItem(item)}>
                   <TableCell className="font-mono text-xs">{item.sku}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -333,22 +353,56 @@ export default function InventarisPage() {
                       {getStatusDisplayName(item.status)}
                     </Badge>
                   </TableCell>
-                  {canEdit && (
-                    <TableCell className="text-right">
-                      <button
-                        onClick={() => openEditModal(item)}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer ml-auto"
-                        title="Edit barang"
-                      >
-                        <Pencil size={13} />
-                      </button>
+                  {(canEdit || canDelete) && (
+                    <TableCell className="text-right" onClick={e => e.stopPropagation()}>
+                      {confirmId === item.id ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-muted-foreground">Hapus?</span>
+                            <Button size="sm" variant="destructive" className="h-6 px-2 text-xs"
+                              disabled={deleting} onClick={() => deleteItem(item.id)}
+                            >
+                              {deleting ? "..." : "Ya"}
+                            </Button>
+                            <Button size="sm" variant="outline" className="h-6 px-2 text-xs"
+                              onClick={() => { setConfirmId(null); setDeleteErr(""); }}
+                            >
+                              Batal
+                            </Button>
+                          </div>
+                          {deleteErr && confirmId === item.id && (
+                            <p className="text-[11px] text-destructive text-right max-w-[220px]">{deleteErr}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-end gap-1">
+                          {canEdit && (
+                            <button
+                              onClick={() => openEditModal(item)}
+                              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
+                              title="Edit barang"
+                            >
+                              <Pencil size={13} />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => { setConfirmId(item.id); setDeleteErr(""); }}
+                              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
+                              title="Hapus barang"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </TableCell>
                   )}
                 </TableRow>
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={canEdit ? 8 : 7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={(canEdit || canDelete) ? 8 : 7} className="text-center py-12 text-muted-foreground">
                     {search || filterStatus || filterCategory
                       ? "Tidak ada barang yang sesuai filter."
                       : "Belum ada barang. Klik \"Tambah Barang\" untuk memulai."}
@@ -541,6 +595,129 @@ export default function InventarisPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* ── Floating Detail Card ── */}
+      {selectedItem && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px]"
+            onClick={() => setSelectedItem(null)}
+          />
+
+          {/* Panel */}
+          <div className="fixed right-4 top-20 bottom-4 z-50 w-80 flex flex-col rounded-2xl border bg-card shadow-2xl overflow-hidden animate-in slide-in-from-right-8 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b bg-muted/30">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+                  <Package size={16} className="text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm leading-tight">{selectedItem.name}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{selectedItem.sku}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="rounded-lg p-1.5 hover:bg-accent transition-colors cursor-pointer text-muted-foreground"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Status */}
+            <div className="px-4 pt-3 pb-1">
+              <Badge variant={STATUS_BADGE_VARIANT[selectedItem.status] ?? "secondary"} className="text-xs">
+                {getStatusDisplayName(selectedItem.status)}
+              </Badge>
+            </div>
+
+            {/* Detail rows */}
+            <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3">
+
+              {selectedItem.description && (
+                <div className="rounded-lg bg-muted/40 p-3">
+                  <p className="text-xs text-muted-foreground">{selectedItem.description}</p>
+                </div>
+              )}
+
+              <div className="space-y-2.5">
+                {/* Kategori */}
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <Tag size={13} className="text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] text-muted-foreground">Kategori</p>
+                    <p className="text-sm font-medium truncate">{selectedItem.category.name}</p>
+                  </div>
+                </div>
+
+                {/* Lokasi */}
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <MapPin size={13} className="text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] text-muted-foreground">Lokasi</p>
+                    <p className="text-sm font-medium truncate">{selectedItem.location.name}</p>
+                  </div>
+                </div>
+
+                {/* Stok */}
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <Layers size={13} className="text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[11px] text-muted-foreground">Stok</p>
+                    <p className="text-sm font-medium">
+                      {formatAngka(selectedItem.stock)}
+                      <span className="text-xs text-muted-foreground ml-1">{selectedItem.unit}</span>
+                      <span className="text-xs text-muted-foreground ml-2">/ min {selectedItem.minStock}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Berat */}
+                {selectedItem.weight != null && (
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted">
+                      <Scale size={13} className="text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">Berat</p>
+                      <p className="text-sm font-medium">{selectedItem.weight} kg</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Harga */}
+              <div className="rounded-xl border bg-primary/5 p-3">
+                <p className="text-[11px] text-muted-foreground mb-0.5">Harga Satuan</p>
+                <p className="text-lg font-bold text-primary">{formatRupiah(selectedItem.price)}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Nilai stok: {formatRupiah(selectedItem.price * selectedItem.stock)}
+                </p>
+              </div>
+            </div>
+
+            {/* Footer action */}
+            {canEdit && (
+              <div className="p-3 border-t bg-muted/20">
+                <Button
+                  size="sm" variant="outline" className="w-full gap-2"
+                  onClick={() => { openEditModal(selectedItem); setSelectedItem(null); }}
+                >
+                  <Pencil size={13} /> Edit Barang Ini
+                </Button>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </>
   );
 }

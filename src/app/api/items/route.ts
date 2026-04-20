@@ -118,3 +118,29 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: false, error: "Gagal mengupdate barang" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { id } = await request.json();
+    if (!id) return NextResponse.json({ success: false, error: "ID barang diperlukan." }, { status: 400 });
+
+    // Cek apakah ada transaksi terkait
+    const [inbounds, outbounds] = await Promise.all([
+      prisma.inboundItem.count({ where: { item: { id } } }),
+      prisma.outboundItem.count({ where: { item: { id } } }),
+    ]);
+
+    if (inbounds + outbounds > 0) {
+      return NextResponse.json({
+        success: false,
+        error: `Tidak dapat menghapus. Barang ini memiliki ${inbounds + outbounds} riwayat transaksi.`,
+      }, { status: 409 });
+    }
+
+    await prisma.item.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Items DELETE Error:", error);
+    return NextResponse.json({ success: false, error: "Gagal menghapus barang" }, { status: 500 });
+  }
+}

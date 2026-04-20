@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import {
   LayoutDashboard, Package, Tag, TruckIcon,
   PackageOpen, ClipboardCheck, Building2,
-  FileBarChart, Bell, Users, Warehouse, X, ChevronLeft, ChevronRight,
+  FileBarChart, Bell, Users, Warehouse, X, ChevronLeft, ChevronRight, MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hasPermission, type Role, type Permission } from "@/types";
@@ -25,6 +25,7 @@ const NAV: NavSection[] = [
   { title: "Inventaris", links: [
     { title: "Daftar Barang", href: "/dashboard/inventaris",   icon: <Package size={18} />,         permission: "inventory:view"  },
     { title: "Kategori",      href: "/dashboard/kategori",     icon: <Tag size={18} />,              permission: "category:view"   },
+    { title: "Lokasi",        href: "/dashboard/lokasi",       icon: <MapPin size={18} />,           permission: "location:view"   },
   ]},
   { title: "Operasional", links: [
     { title: "Barang Masuk",  href: "/dashboard/barang-masuk", icon: <TruckIcon size={18} />,       permission: "inbound:view"    },
