@@ -22,9 +22,14 @@ function NotifBell() {
         .then(j => { if (j.success) setUnread(j.unreadCount ?? 0); })
         .catch(() => {});
     }
-    fetch_();
-    const id = setInterval(fetch_, 30_000); // refresh tiap 30 detik
-    return () => clearInterval(id);
+    fetch_(); // fetch langsung saat mount
+    const id = setInterval(fetch_, 10_000); // polling tiap 10 detik
+
+    // Refresh juga saat tab kembali aktif (pindah tab → balik)
+    const onVisible = () => { if (document.visibilityState === "visible") fetch_(); };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };
   }, []);
 
   return (

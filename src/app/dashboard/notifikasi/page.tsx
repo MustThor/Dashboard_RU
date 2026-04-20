@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, CheckCircle, AlertTriangle, Info, XCircle, Package, ArrowRightLeft, CheckCheck, RotateCcw } from "lucide-react";
+import { Bell, CheckCircle, AlertTriangle, Info, XCircle, Package, ArrowRightLeft, CheckCheck, RotateCcw, RefreshCw, Trash2 } from "lucide-react";
 import { formatTanggalWaktu } from "@/lib/utils";
 
 interface Notification {
@@ -31,10 +31,13 @@ const typeVariant: Record<string, "info" | "warning" | "success" | "destructive"
 };
 
 export default function NotifikasiPage() {
-  const [notifs, setNotifs]   = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [marking, setMarking] = useState(false);
-  const [unread,  setUnread]  = useState(0);
+  const [notifs, setNotifs]         = useState<Notification[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [marking, setMarking]       = useState(false);
+  const [unread,  setUnread]        = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [deletingAll, setDeletingAll] = useState(false);
+  const [confirmAll,  setConfirmAll]  = useState(false);
 
   const load = useCallback(() => {
     return fetch("/api/notifications")
@@ -42,7 +45,23 @@ export default function NotifikasiPage() {
       .then(j => { if (j.success) { setNotifs(j.data); setUnread(j.unreadCount ?? 0); } });
   }, []);
 
+  // Mount: load awal
   useEffect(() => { load().finally(() => setLoading(false)); }, [load]);
+
+  // Auto-polling tiap 10 detik
+  useEffect(() => {
+    const id = setInterval(() => { load(); }, 10_000);
+    // Refresh juga saat tab kembali aktif
+    const onVisible = () => { if (document.visibilityState === "visible") load(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };
+  }, [load]);
+
+  async function manualRefresh() {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }
 
   async function markOne(id: string) {
     await fetch("/api/notifications", {
@@ -62,6 +81,30 @@ export default function NotifikasiPage() {
     });
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, isRead: false } : n));
     setUnread(prev => prev + 1);
+  }
+
+  async function deleteOne(id: string) {
+    await fetch("/api/notifications", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const deleted = notifs.find(n => n.id === id);
+    setNotifs(prev => prev.filter(n => n.id !== id));
+    if (deleted && !deleted.isRead) setUnread(prev => Math.max(0, prev - 1));
+  }
+
+  async function deleteAll() {
+    setDeletingAll(true);
+    await fetch("/api/notifications", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ all: true }),
+    });
+    setNotifs([]);
+    setUnread(0);
+    setConfirmAll(false);
+    setDeletingAll(false);
   }
 
   async function markAll() {
@@ -93,12 +136,32 @@ export default function NotifikasiPage() {
             {unread > 0 ? `${unread} belum dibaca` : "Semua sudah dibaca"}
           </p>
         </div>
-        {unread > 0 && (
-          <Button variant="outline" size="sm" className="gap-2" onClick={markAll} disabled={marking}>
-            <CheckCheck size={14} />
-            {marking ? "Menandai..." : "Tandai Semua Dibaca"}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={manualRefresh} disabled={refreshing} title="Refresh">
+            <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
           </Button>
-        )}
+          {notifs.length > 0 && (
+            confirmAll ? (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted-foreground">Hapus semua?</span>
+                <Button size="sm" variant="destructive" className="h-7 px-2 text-xs" disabled={deletingAll} onClick={deleteAll}>
+                  {deletingAll ? "..." : "Ya"}
+                </Button>
+                <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => setConfirmAll(false)}>Batal</Button>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30" onClick={() => setConfirmAll(true)}>
+                <Trash2 size={13} /> Hapus Semua
+              </Button>
+            )
+          )}
+          {unread > 0 && !confirmAll && (
+            <Button variant="outline" size="sm" className="gap-2" onClick={markAll} disabled={marking}>
+              <CheckCheck size={14} />
+              {marking ? "Menandai..." : "Tandai Semua Dibaca"}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -126,18 +189,25 @@ export default function NotifikasiPage() {
                 <p className="text-xs text-muted-foreground mt-1">{formatTanggalWaktu(n.createdAt)}</p>
               </div>
               {/* Aksi di sisi kanan */}
-              <div className="shrink-0 flex flex-col items-end gap-1">
+              <div className="shrink-0 flex flex-col items-end gap-1.5">
                 {!n.isRead ? (
                   <span className="text-[11px] text-primary">Klik untuk tandai dibaca</span>
                 ) : (
                   <button
                     onClick={e => { e.stopPropagation(); unmarkOne(n.id); }}
                     className="hidden group-hover:flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                    title="Kembalikan ke belum dibaca"
                   >
                     <RotateCcw size={11} /> Belum dibaca
                   </button>
                 )}
+                {/* Hapus per notif */}
+                <button
+                  onClick={e => { e.stopPropagation(); deleteOne(n.id); }}
+                  className="hidden group-hover:flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                  title="Hapus notifikasi ini"
+                >
+                  <Trash2 size={11} /> Hapus
+                </button>
               </div>
             </CardContent>
           </Card>

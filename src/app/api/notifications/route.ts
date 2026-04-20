@@ -43,3 +43,23 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ success: false, error: "Gagal update notifikasi" }, { status: 500 });
   }
 }
+
+// DELETE — hapus satu atau semua notifikasi
+export async function DELETE(req: Request) {
+  try {
+    const { id, all } = await req.json();
+
+    if (all) {
+      await prisma.notification.deleteMany({});
+    } else if (id) {
+      await prisma.notification.delete({ where: { id } });
+    } else {
+      return NextResponse.json({ success: false, error: "Harus isi id atau all:true" }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Notifications DELETE Error:", error);
+    return NextResponse.json({ success: false, error: "Gagal menghapus notifikasi" }, { status: 500 });
+  }
+}
