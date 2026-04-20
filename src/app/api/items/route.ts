@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { createNotif, notifyStockWarning } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +77,20 @@ export async function POST(request: Request) {
       data: { used: { increment: stockNum } },
     });
 
+    // Notifikasi barang baru ditambahkan
+    const session = await auth();
+    await createNotif({
+      type:    "SUCCESS",
+      title:   `Barang Baru Ditambahkan`,
+      message: `[${sku}] ${name} berhasil ditambahkan ke inventaris dengan stok ${stockNum} ${unit || "pcs"}.`,
+      userId:  session?.user?.id ?? null,
+    });
+
+    // Cek stok awal langsung rendah/habis
+    if (status === "STOK_RENDAH" || status === "HABIS") {
+      await notifyStockWarning({ itemName: name, sku, newStock: stockNum, minStock: minStockNum, unit: unit || "pcs", userId: session?.user?.id });
+    }
+
     return NextResponse.json({ success: true, data: item }, { status: 201 });
   } catch (error) {
     console.error("Items POST Error:", error);
@@ -112,6 +128,20 @@ export async function PATCH(request: Request) {
       include: { category: true, location: true },
     });
 
+    // Notifikasi edit barang
+    const session = await auth();
+    await createNotif({
+      type:    "INFO",
+      title:   `Barang Diperbarui: ${item.name}`,
+      message: `[${item.sku}] Data barang diubah. Stok: ${stockNum} ${item.unit}, Harga: Rp ${Number(price).toLocaleString("id-ID")}.`,
+      userId:  session?.user?.id ?? null,
+    });
+
+    // Cek jika stok menjadi rendah/habis setelah edit
+    if (status === "STOK_RENDAH" || status === "HABIS") {
+      await notifyStockWarning({ itemName: item.name, sku: item.sku, newStock: stockNum, minStock: minStockNum, unit: item.unit, userId: session?.user?.id });
+    }
+
     return NextResponse.json({ success: true, data: item });
   } catch (error) {
     console.error("Items PATCH Error:", error);
@@ -137,7 +167,20 @@ export async function DELETE(request: Request) {
       }, { status: 409 });
     }
 
+    // Simpan nama sebelum dihapus
+    const itemToDelete = await prisma.item.findUnique({ where: { id }, select: { name: true, sku: true } });
+
     await prisma.item.delete({ where: { id } });
+
+    // Notifikasi hapus barang
+    const session = await auth();
+    await createNotif({
+      type:    "WARNING",
+      title:   `Barang Dihapus: ${itemToDelete?.name ?? id}`,
+      message: `[${itemToDelete?.sku ?? id}] dihapus dari inventaris oleh ${session?.user?.name ?? "pengguna"}.`,
+      userId:  session?.user?.id ?? null,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Items DELETE Error:", error);
