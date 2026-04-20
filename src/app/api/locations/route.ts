@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Tidak punya izin menambah lokasi." }, { status: 403 });
     }
 
-    const { name, code, type, capacity, description } = await req.json();
+    const { name, code, type, capacity } = await req.json();
     if (!name || !code) {
       return NextResponse.json({ success: false, error: "Nama dan kode lokasi wajib diisi." }, { status: 400 });
     }
@@ -42,9 +42,8 @@ export async function POST(req: Request) {
       data: {
         name: name.trim(),
         code: code.toUpperCase().trim(),
-        type: type?.trim() || null,
-        capacity: capacity ? Number(capacity) : null,
-        description: description?.trim() || null,
+        type: type?.trim() || "GUDANG",
+        capacity: capacity ? Number(capacity) : undefined,
         isActive: true,
       },
     });
@@ -67,7 +66,7 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ success: false, error: "Tidak punya izin mengubah lokasi." }, { status: 403 });
     }
 
-    const { id, name, type, capacity, description, isActive } = await req.json();
+    const { id, name, type, capacity, isActive } = await req.json();
     if (!id || !name) {
       return NextResponse.json({ success: false, error: "ID dan nama lokasi wajib diisi." }, { status: 400 });
     }
@@ -76,9 +75,8 @@ export async function PATCH(req: Request) {
       where: { id },
       data: {
         name: name.trim(),
-        type: type?.trim() || null,
-        capacity: capacity ? Number(capacity) : null,
-        description: description?.trim() || null,
+        type: type?.trim() || "GUDANG",
+        capacity: capacity ? Number(capacity) : undefined,
         isActive: isActive ?? true,
       },
     });
