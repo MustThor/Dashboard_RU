@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { notifyOpnameCreated, notifyOpnameCompleted, notifyOpnameApproved, notifyStockWarning } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,10 @@ export async function POST(req: Request) {
       },
     });
 
+    // Notifikasi opname dibuat — ambil nama lokasi
+    const loc = await prisma.location.findUnique({ where: { id: locationId }, select: { name: true } });
+    await notifyOpnameCreated({ opnameNumber, locationName: loc?.name ?? locationId, itemCount: items.length, userId: session.user.id });
+
     return NextResponse.json({ success: true, data: opname });
   } catch (error) {
     console.error("StockOpname POST Error:", error);
@@ -89,16 +94,25 @@ export async function PATCH(req: Request) {
       include: { items: { include: { item: true } } },
     });
 
-    // If approved, apply physical stock to actual item stock
+    // Terapkan koreksi stok jika disetujui
     if (status === "DISETUJUI") {
+      let selisihCount = 0;
       for (const oi of updated.items) {
         const newStock = oi.physicalStock;
         const newStatus = newStock === 0 ? "HABIS" : newStock <= oi.item.minStock ? "STOK_RENDAH" : "TERSEDIA";
-        await prisma.item.update({
-          where: { id: oi.itemId },
-          data: { stock: newStock, status: newStatus },
-        });
+        await prisma.item.update({ where: { id: oi.itemId }, data: { stock: newStock, status: newStatus } });
+        if (oi.difference !== 0) selisihCount++;
+        if (newStatus === "STOK_RENDAH" || newStatus === "HABIS") {
+          await notifyStockWarning({ itemName: oi.item.name, sku: oi.item.sku, newStock, minStock: oi.item.minStock, unit: oi.item.unit, userId: session.user.id });
+        }
       }
+      const loc = await prisma.location.findUnique({ where: { id: updated.locationId }, select: { name: true } });
+      await notifyOpnameApproved({ opnameNumber: updated.opnameNumber, locationName: loc?.name ?? "", selisihCount, userId: session.user.id });
+    }
+
+    if (status === "SELESAI") {
+      const loc = await prisma.location.findUnique({ where: { id: updated.locationId }, select: { name: true } });
+      await notifyOpnameCompleted({ opnameNumber: updated.opnameNumber, locationName: loc?.name ?? "", userId: session.user.id });
     }
 
     return NextResponse.json({ success: true, data: updated });

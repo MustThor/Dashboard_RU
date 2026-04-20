@@ -2,13 +2,48 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Bell, LogOut, Moon, Search, Sun, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials, getRoleDisplayName } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 import { hasPermission, type Role } from "@/types";
+
+// ── Notification Bell — fetch unread count from API ────────────────────────────
+function NotifBell() {
+  const [unread, setUnread] = useState(0);
+  const router = useRouter();
+
+  useEffect(() => {
+    function fetch_() {
+      fetch("/api/notifications")
+        .then(r => r.json())
+        .then(j => { if (j.success) setUnread(j.unreadCount ?? 0); })
+        .catch(() => {});
+    }
+    fetch_();
+    const id = setInterval(fetch_, 30_000); // refresh tiap 30 detik
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <Button
+      variant="ghost" size="icon"
+      className="relative h-9 w-9"
+      onClick={() => router.push("/dashboard/notifikasi")}
+      aria-label="Notifikasi"
+    >
+      <Bell size={16} />
+      {unread > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
+    </Button>
+  );
+}
+
 
 const breadcrumbMap: Record<string, string> = {
   "/dashboard":              "Dashboard",
@@ -126,12 +161,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
         {/* Notification — hidden for roles without notification:view */}
         {!showSearch && hasPermission((session?.user?.role ?? "VIEWER") as Role, "notification:view") && (
-          <Button variant="ghost" size="icon" className="relative h-9 w-9">
-            <Bell size={16} />
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-              5
-            </span>
-          </Button>
+          <NotifBell />
         )}
 
         {/* User menu */}

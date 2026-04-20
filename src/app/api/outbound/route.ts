@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { notifyOutboundCreated, notifyStockWarning } from "@/lib/notify";
 
 
 export const dynamic = "force-dynamic";
@@ -79,17 +80,21 @@ export async function POST(req: Request) {
       },
     });
 
-    // Reduce stock for each item
+    // Reduce stock for each item + cek stok rendah/habis
     for (const i of items as { itemId: string; quantity: number }[]) {
       const item = await prisma.item.findUnique({ where: { id: i.itemId } });
       if (!item) continue;
       const newStock = item.stock - i.quantity;
       const newStatus = newStock === 0 ? "HABIS" : newStock <= item.minStock ? "STOK_RENDAH" : "TERSEDIA";
-      await prisma.item.update({
-        where: { id: i.itemId },
-        data: { stock: newStock, status: newStatus },
-      });
+      await prisma.item.update({ where: { id: i.itemId }, data: { stock: newStock, status: newStatus } });
+
+      if (newStatus === "STOK_RENDAH" || newStatus === "HABIS") {
+        await notifyStockWarning({ itemName: item.name, sku: item.sku, newStock, minStock: item.minStock, unit: item.unit, userId: session.user.id });
+      }
     }
+
+    // Notifikasi barang keluar
+    await notifyOutboundCreated({ soNumber, destination, itemCount: items.length, totalValue, userId: session.user.id });
 
     return NextResponse.json({ success: true, data: outbound });
   } catch (error) {
