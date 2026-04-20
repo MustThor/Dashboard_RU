@@ -93,6 +93,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "inbound:view", "inbound:create",
     "outbound:view", "outbound:create",
     "transfer:view", "transfer:create",
+    "opname:view", "opname:create",
     "notification:view",
   ],
   AUDITOR: [
@@ -107,15 +108,6 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   VIEWER: [
     "dashboard:view",
     "inventory:view",
-    "category:view",
-    "location:view",
-    "inbound:view",
-    "outbound:view",
-    "transfer:view",
-    "opname:view",
-    "supplier:view",
-    "report:view",
-    "notification:view",
   ],
 };
 

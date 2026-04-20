@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Package, TruckIcon, PackageOpen, AlertTriangle,
-  DollarSign, Tag, MapPin, Building2,
+  DollarSign, Tag, Building2,
 } from "lucide-react";
+
 import { formatRupiah, formatTanggalPendek } from "@/lib/utils";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -83,19 +84,17 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5">
       {/* ── Stats row 1 ── */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard title="Total Barang"         value={stats.totalItems}    icon={<Package size={20}/>}    sub={`${stats.totalCategories} kategori`} />
-        <StatCard title="Masuk Hari Ini"       value={stats.inboundToday}  icon={<TruckIcon size={20}/>}  sub="transaksi masuk" />
-        <StatCard title="Keluar Hari Ini"      value={stats.outboundToday} icon={<PackageOpen size={20}/>} sub="transaksi keluar" />
-        <StatCard title="Stok Rendah / Habis"  value={stats.lowStockCount} icon={<AlertTriangle size={20}/>} sub="perlu restock" />
+      <div className="grid grid-cols-3 gap-3">
+        <StatCard title="Total Barang"        value={stats.totalItems}    icon={<Package size={20}/>}      sub={`${stats.totalCategories} kategori`} />
+        <StatCard title="Masuk Hari Ini"      value={stats.inboundToday}  icon={<TruckIcon size={20}/>}   sub="transaksi masuk" />
+        <StatCard title="Keluar Hari Ini"     value={stats.outboundToday} icon={<PackageOpen size={20}/>} sub="transaksi keluar" />
       </div>
 
       {/* ── Stats row 2 ── */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard title="Nilai Inventaris"   value={formatRupiah(stats.totalValue)}  icon={<DollarSign size={20}/>} />
-        <StatCard title="Kategori"            value={stats.totalCategories}            icon={<Tag size={20}/>} />
-        <StatCard title="Lokasi"             value={stats.totalLocations}             icon={<MapPin size={20}/>} />
-        <StatCard title="Supplier"            value={stats.totalSuppliers}             icon={<Building2 size={20}/>} />
+      <div className="grid grid-cols-3 gap-3">
+        <StatCard title="Stok Rendah / Habis" value={stats.lowStockCount}     icon={<AlertTriangle size={20}/>} sub="perlu restock" />
+        <StatCard title="Kategori"             value={stats.totalCategories}   icon={<Tag size={20}/>} />
+        <StatCard title="Supplier"             value={stats.totalSuppliers}    icon={<Building2 size={20}/>} />
       </div>
 
       {/* ── Charts ── */}

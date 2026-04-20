@@ -55,7 +55,7 @@ async function main() {
     prisma.user.create({ data: { name: "Dewi Lestari",   email: "dewi.lestari@fashionru.id",   password: pass, role: "ADMIN_GUDANG", isActive: true } }),
     prisma.user.create({ data: { name: "Rina Marlina",   email: "rina.marlina@fashionru.id",   password: pass, role: "SUPERVISOR",   isActive: true } }),
     prisma.user.create({ data: { name: "Fitri Handayani",email: "fitri.handayani@fashionru.id",password: pass, role: "STAFF",        isActive: true } }),
-    prisma.user.create({ data: { name: "Yuni Rahayu",    email: "yuni.rahayu@fashionru.id",    password: pass, role: "STAFF",        isActive: true } }),
+
     prisma.user.create({ data: { name: "Andi Prasetyo",  email: "andi.prasetyo@fashionru.id",  password: pass, role: "AUDITOR",      isActive: true } }),
     prisma.user.create({ data: { name: "Hendra Kusuma",  email: "hendra.kusuma@fashionru.id",  password: pass, role: "VIEWER",       isActive: true } }),
   ]);

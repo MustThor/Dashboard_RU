@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials, getRoleDisplayName } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
+import { hasPermission, type Role } from "@/types";
 
 const breadcrumbMap: Record<string, string> = {
   "/dashboard":              "Dashboard",
@@ -123,8 +124,8 @@ export function Header({ onMenuClick }: HeaderProps) {
           </Button>
         )}
 
-        {/* Notification */}
-        {!showSearch && (
+        {/* Notification — hidden for roles without notification:view */}
+        {!showSearch && hasPermission((session?.user?.role ?? "VIEWER") as Role, "notification:view") && (
           <Button variant="ghost" size="icon" className="relative h-9 w-9">
             <Bell size={16} />
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">

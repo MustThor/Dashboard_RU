@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -16,10 +18,10 @@ import {
   Dialog, DialogContent, DialogHeader,
   DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { Search, Plus, Package, Download, RefreshCw, X } from "lucide-react";
+import { Search, Plus, Package, Download, RefreshCw, X, Pencil } from "lucide-react";
 import { formatRupiah, formatAngka, getStatusDisplayName } from "@/lib/utils";
 import type { Item, Category, Location } from "@/types";
-import { STATUS_BADGE_VARIANT } from "@/types";
+import { STATUS_BADGE_VARIANT, hasPermission, type Role } from "@/types";
 
 // ─── Local Types ──────────────────────────────────────────────────────────────
 // Item, Category, Location are imported from @/types
@@ -70,12 +72,23 @@ export default function InventarisPage() {
   const [search, setSearch]                 = useState("");
   const [filterStatus, setFilterStatus]     = useState("");
   const [filterCategory, setFilterCategory] = useState("");
+  const searchParams = useSearchParams();
+
   const [loading, setLoading]               = useState(true);
   const [showModal, setShowModal]           = useState(false);
+  const { data: session } = useSession();
+  const canCreate = hasPermission((session?.user?.role ?? "VIEWER") as Role, "inventory:create");
+  const canEdit   = hasPermission((session?.user?.role ?? "VIEWER") as Role, "inventory:edit");
+  const [editingId, setEditingId]           = useState<string | null>(null);
   const [form, setForm]                     = useState<ItemFormData>(EMPTY_FORM);
   const [submitting, setSubmitting]         = useState(false);
   const [error, setError]                   = useState("");
   const [fetchError, setFetchError]         = useState("");
+  // Baca ?category= dari URL (navigasi dari halaman Kategori)
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat) setFilterCategory(cat);
+  }, [searchParams]);
 
   // ── Fetch data ─────────────────────────────────────────────────────────────
 
@@ -122,7 +135,26 @@ export default function InventarisPage() {
   // ── Form helpers ───────────────────────────────────────────────────────────
 
   function openModal() {
+    setEditingId(null);
     setForm(EMPTY_FORM);
+    setError("");
+    setShowModal(true);
+  }
+
+  function openEditModal(item: Item) {
+    setEditingId(item.id);
+    setForm({
+      sku:         item.sku,
+      name:        item.name,
+      description: item.description ?? "",
+      categoryId:  item.category.id,
+      locationId:  item.location.id,
+      stock:       String(item.stock),
+      minStock:    String(item.minStock),
+      unit:        item.unit,
+      price:       String(item.price),
+      weight:      item.weight != null ? String(item.weight) : "",
+    });
     setError("");
     setShowModal(true);
   }
@@ -147,10 +179,12 @@ export default function InventarisPage() {
 
     setSubmitting(true);
     try {
+      const isEdit = Boolean(editingId);
       const res = await fetch("/api/items", {
-        method: "POST",
+        method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...(isEdit ? { id: editingId } : {}),
           ...form,
           stock:    Number(form.stock),
           minStock: Number(form.minStock),
@@ -210,9 +244,11 @@ export default function InventarisPage() {
           <Button variant="outline" size="sm">
             <Download size={15} /> Export
           </Button>
-          <Button size="sm" onClick={openModal}>
-            <Plus size={15} /> Tambah Barang
-          </Button>
+          {canCreate && (
+            <Button size="sm" onClick={openModal}>
+              <Plus size={15} /> Tambah Barang
+            </Button>
+          )}
         </div>
       </div>
 
@@ -263,6 +299,7 @@ export default function InventarisPage() {
                 <TableHead className="text-right">Stok</TableHead>
                 <TableHead className="text-right">Harga</TableHead>
                 <TableHead>Status</TableHead>
+                {canEdit && <TableHead className="text-right">Aksi</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -296,11 +333,22 @@ export default function InventarisPage() {
                       {getStatusDisplayName(item.status)}
                     </Badge>
                   </TableCell>
+                  {canEdit && (
+                    <TableCell className="text-right">
+                      <button
+                        onClick={() => openEditModal(item)}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer ml-auto"
+                        title="Edit barang"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={canEdit ? 8 : 7} className="text-center py-12 text-muted-foreground">
                     {search || filterStatus || filterCategory
                       ? "Tidak ada barang yang sesuai filter."
                       : "Belum ada barang. Klik \"Tambah Barang\" untuk memulai."}
@@ -318,10 +366,14 @@ export default function InventarisPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package size={18} />
-              Tambah Barang Baru
+              {editingId ? "Edit Barang" : "Tambah Barang Baru"}
             </DialogTitle>
             <DialogDescription>
-              Isi detail barang berikut. Kolom bertanda <span className="text-destructive">*</span> wajib diisi.
+              {editingId
+                ? "Ubah detail barang. SKU tidak dapat diubah."
+                : "Isi detail barang berikut. Kolom bertanda "}
+              {!editingId && <span className="text-destructive">*</span>}
+              {!editingId && " wajib diisi."}
             </DialogDescription>
           </DialogHeader>
 

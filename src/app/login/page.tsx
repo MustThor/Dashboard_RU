@@ -10,17 +10,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const DEMO_ACCOUNTS = [
-  { name: "Ahmad Fauzi", email: "ahmad.fauzi@gudang.co.id", role: "Super Admin" },
-  { name: "Siti Rahayu", email: "siti.rahayu@gudang.co.id", role: "Admin Gudang" },
-  { name: "Budi Santoso", email: "budi.santoso@gudang.co.id", role: "Supervisor" },
-  { name: "Dewi Lestari", email: "dewi.lestari@gudang.co.id", role: "Staff" },
-  { name: "Andi Wijaya", email: "andi.wijaya@gudang.co.id", role: "Auditor" },
-  { name: "Maya Sari", email: "maya.sari@gudang.co.id", role: "Viewer" },
+  { name: "Siti Aminah",     email: "siti.aminah@fashionru.id",    role: "Super Admin" },
+  { name: "Dewi Lestari",    email: "dewi.lestari@fashionru.id",   role: "Admin Gudang" },
+  { name: "Rina Marlina",    email: "rina.marlina@fashionru.id",   role: "Supervisor" },
+  { name: "Fitri Handayani", email: "fitri.handayani@fashionru.id",role: "Staff" },
+  { name: "Andi Prasetyo",   email: "andi.prasetyo@fashionru.id",  role: "Auditor" },
+  { name: "Hendra Kusuma",   email: "hendra.kusuma@fashionru.id",  role: "Viewer" },
 ];
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("ahmad.fauzi@gudang.co.id");
+  const [email, setEmail] = useState("siti.aminah@fashionru.id");
   const [password, setPassword] = useState("password123");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");

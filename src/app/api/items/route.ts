@@ -81,3 +81,40 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: "Gagal menambah barang" }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, name, description, categoryId, locationId, stock, minStock, unit, price, weight } = body;
+
+    if (!id || !name || !categoryId || !locationId) {
+      return NextResponse.json({ success: false, error: "ID, nama, kategori, dan lokasi wajib diisi" }, { status: 400 });
+    }
+
+    const stockNum    = Number(stock) ?? 0;
+    const minStockNum = Number(minStock) ?? 10;
+    const status      = stockNum === 0 ? "HABIS" : stockNum <= minStockNum ? "STOK_RENDAH" : "TERSEDIA";
+
+    const item = await prisma.item.update({
+      where: { id },
+      data: {
+        name,
+        description: description || null,
+        categoryId,
+        locationId,
+        stock:    stockNum,
+        minStock: minStockNum,
+        unit:     unit || "pcs",
+        price:    Number(price) || 0,
+        weight:   weight ? Number(weight) : null,
+        status,
+      },
+      include: { category: true, location: true },
+    });
+
+    return NextResponse.json({ success: true, data: item });
+  } catch (error) {
+    console.error("Items PATCH Error:", error);
+    return NextResponse.json({ success: false, error: "Gagal mengupdate barang" }, { status: 500 });
+  }
+}
