@@ -46,7 +46,7 @@ function StatCard({ title, value, icon, sub }: {
             <p className="mt-0.5 text-xl md:text-2xl font-bold">{value}</p>
             {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
           </div>
-          <div className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <div className="hidden md:flex ml-3 h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             {icon}
           </div>
         </div>
