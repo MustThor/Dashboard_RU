@@ -13,6 +13,7 @@ import { hasPermission, type Role } from "@/types";
 interface Category {
   id: string; code: string; name: string; description: string | null; isActive: boolean;
   _count: { items: number };
+  items: { status: string }[];
 }
 
 export default function KategoriPage() {
@@ -151,9 +152,21 @@ export default function KategoriPage() {
                   <Tag size={18} className="text-primary" />
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Badge variant={cat.isActive ? "success" : "secondary"}>
-                    {cat.isActive ? "Aktif" : "Nonaktif"}
-                  </Badge>
+                  {(() => {
+                    const habisCount = cat.items?.filter(i => i.status === "HABIS").length || 0;
+                    const rendahCount = cat.items?.filter(i => i.status === "STOK_RENDAH").length || 0;
+
+                    if (cat._count.items === 0) {
+                      return <Badge variant="secondary">0 Barang</Badge>;
+                    }
+                    if (habisCount > 0) {
+                      return <Badge variant="destructive">{habisCount} Kosong</Badge>;
+                    }
+                    if (rendahCount > 0) {
+                      return <Badge variant="warning">{rendahCount} Stok Rendah</Badge>;
+                    }
+                    return <Badge variant="success">Tersedia</Badge>;
+                  })()}
                   {/* Tombol hapus — hanya muncul saat hover, untuk yang berhak */}
                   {canCreate && confirmId !== cat.id && (
                     <button

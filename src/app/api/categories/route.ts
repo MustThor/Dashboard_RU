@@ -7,7 +7,13 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const categories = await prisma.category.findMany({
-      include: { _count: { select: { items: true } } },
+      include: { 
+        _count: { select: { items: true } },
+        items: {
+          select: { status: true },
+          where: { status: { in: ['HABIS', 'STOK_RENDAH'] } }
+        }
+      },
       orderBy: { name: "asc" },
     });
     return NextResponse.json({ success: true, data: categories });
