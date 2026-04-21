@@ -79,7 +79,7 @@ export async function DELETE(req: Request) {
 
       // Hapus semua barang di kategori ini (cascade: opname items, inbound items, outbound items dulu)
       const items = await prisma.item.findMany({ where: { categoryId: id }, select: { id: true } });
-      const itemIds = items.map(i => i.id);
+      const itemIds = items.map((i: { id: string }) => i.id);
 
       if (itemIds.length > 0) {
         await prisma.stockOpnameItem.deleteMany({ where: { itemId: { in: itemIds } } });
