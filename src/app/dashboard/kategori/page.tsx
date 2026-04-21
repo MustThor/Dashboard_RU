@@ -151,7 +151,7 @@ export default function KategoriPage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
                   <Tag size={18} className="text-primary" />
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   {(() => {
                     const habisCount = cat.items?.filter(i => i.status === "HABIS").length || 0;
                     const rendahCount = cat.items?.filter(i => i.status === "STOK_RENDAH").length || 0;
@@ -159,12 +159,16 @@ export default function KategoriPage() {
                     if (cat._count.items === 0) {
                       return <Badge variant="secondary">0 Barang</Badge>;
                     }
+
+                    const badges = [];
                     if (habisCount > 0) {
-                      return <Badge variant="destructive">{habisCount} Kosong</Badge>;
+                      badges.push(<Badge key="habis" variant="destructive">{habisCount} Kosong</Badge>);
                     }
                     if (rendahCount > 0) {
-                      return <Badge variant="warning">{rendahCount} Stok Rendah</Badge>;
+                      badges.push(<Badge key="rendah" variant="warning">{rendahCount} Stok Rendah</Badge>);
                     }
+
+                    if (badges.length > 0) return badges;
                     return <Badge variant="success">Tersedia</Badge>;
                   })()}
                   {/* Tombol hapus — hanya muncul saat hover, untuk yang berhak */}
