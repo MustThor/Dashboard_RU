@@ -161,15 +161,15 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted-foreground py-6 text-center">Semua stok aman 👍</p>
               ) : (
                 data.lowStockItems.map(item => (
-                  <div key={item.id} className="flex items-center justify-between rounded-lg border px-3 py-2 gap-2">
+                  <Link href={`/dashboard/inventaris?search=${encodeURIComponent(item.sku)}`} key={item.id} className="flex items-center justify-between rounded-lg border px-3 py-2 gap-2 hover:bg-muted/50 cursor-pointer transition-colors block">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{item.name}</p>
+                      <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{item.name}</p>
                       <p className="text-xs text-muted-foreground">{item.sku}</p>
                     </div>
                     <Badge variant={item.status === "HABIS" ? "destructive" : "warning"} className="shrink-0 text-xs">
                       {item.stock} {item.unit}
                     </Badge>
-                  </div>
+                  </Link>
                 ))
               )}
             </div>

@@ -89,10 +89,13 @@ function InventarisContent() {
   const [submitting, setSubmitting]         = useState(false);
   const [error, setError]                   = useState("");
   const [fetchError, setFetchError]         = useState("");
-  // Baca ?category= dari URL (navigasi dari halaman Kategori)
+  // Baca ?category= dan ?search= dari URL (navigasi dari halaman lain)
   useEffect(() => {
     const cat = searchParams.get("category");
     if (cat) setFilterCategory(cat);
+    
+    const term = searchParams.get("search");
+    if (term) setSearch(term);
   }, [searchParams]);
 
   // ── Fetch data ─────────────────────────────────────────────────────────────
