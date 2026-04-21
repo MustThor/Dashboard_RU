@@ -225,7 +225,7 @@ export default function StokOpnamePage() {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowForm(false)} />
-          <div className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-card border shadow-xl p-6 space-y-5">
+          <div className="relative z-10 w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-xl sm:rounded-2xl bg-card border shadow-xl p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-base">Buat Stok Opname Baru</h3>
               <button onClick={() => setShowForm(false)} className="text-muted-foreground hover:text-foreground cursor-pointer">
@@ -256,16 +256,16 @@ export default function StokOpnamePage() {
                 </div>
 
                 {/* Column headers */}
-                <div className="grid grid-cols-[1fr_90px_90px_32px] gap-2 px-1">
+                <div className="grid grid-cols-[1fr_75px_75px_28px] sm:grid-cols-[1fr_90px_90px_32px] gap-1.5 sm:gap-2 px-1">
                   <span className="text-[11px] text-muted-foreground">Barang</span>
-                  <span className="text-[11px] text-muted-foreground">Stok Sistem</span>
-                  <span className="text-[11px] text-muted-foreground">Stok Fisik</span>
+                  <span className="text-[11px] text-muted-foreground truncate">Stok Sistem</span>
+                  <span className="text-[11px] text-muted-foreground truncate">Stok Fisik</span>
                   <span />
                 </div>
 
                 <div className="space-y-2">
                   {rows.map((row, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_90px_90px_32px] gap-2 items-center">
+                    <div key={idx} className="grid grid-cols-[1fr_75px_75px_28px] sm:grid-cols-[1fr_90px_90px_32px] gap-1.5 sm:gap-2 items-center">
                       <select
                         className="h-9 rounded-md border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-ring"
                         value={row.itemId} onChange={e => handleRowChange(idx, "itemId", e.target.value)} required

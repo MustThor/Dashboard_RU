@@ -127,7 +127,7 @@ export default function NotifikasiPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Bell size={20} className="text-primary" /> Notifikasi
@@ -136,7 +136,7 @@ export default function NotifikasiPage() {
             {unread > 0 ? `${unread} belum dibaca` : "Semua sudah dibaca"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center flex-wrap gap-2">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={manualRefresh} disabled={refreshing} title="Refresh">
             <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
           </Button>
@@ -188,10 +188,9 @@ export default function NotifikasiPage() {
                 <p className="text-sm text-muted-foreground">{n.message}</p>
                 <p className="text-xs text-muted-foreground mt-1">{formatTanggalWaktu(n.createdAt)}</p>
               </div>
-              {/* Aksi di sisi kanan */}
-              <div className="shrink-0 flex flex-col items-end gap-1.5">
+              <div className="shrink-0 flex flex-col items-end gap-1.5 ml-2 mt-1 sm:mt-0">
                 {!n.isRead ? (
-                  <span className="text-[11px] text-primary">Klik untuk tandai dibaca</span>
+                  <span className="text-[10px] sm:text-[11px] text-primary whitespace-nowrap">Tandai dibaca</span>
                 ) : (
                   <button
                     onClick={e => { e.stopPropagation(); unmarkOne(n.id); }}

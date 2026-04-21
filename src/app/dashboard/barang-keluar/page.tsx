@@ -178,7 +178,7 @@ export default function BarangKeluarPage() {
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowForm(false)} />
 
-          <div className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-card border shadow-xl p-6 space-y-5">
+          <div className="relative z-10 w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-xl sm:rounded-2xl bg-card border shadow-xl p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-base">Tambah Barang Keluar</h3>
               <button onClick={() => setShowForm(false)} className="text-muted-foreground hover:text-foreground cursor-pointer">
@@ -206,7 +206,7 @@ export default function BarangKeluarPage() {
                   {rows.map((row, idx) => {
                     const selected = items.find(i => i.id === row.itemId);
                     return (
-                      <div key={idx} className="grid grid-cols-[1fr_90px_32px] gap-2 items-start">
+                      <div key={idx} className="grid grid-cols-[1fr_75px_28px] sm:grid-cols-[1fr_90px_32px] gap-1.5 sm:gap-2 items-start">
                         <select
                           className="h-9 rounded-md border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-ring"
                           value={row.itemId} onChange={e => handleRowChange(idx, "itemId", e.target.value)} required
