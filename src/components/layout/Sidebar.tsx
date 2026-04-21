@@ -101,8 +101,8 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarP
               <Warehouse size={18} />
             </div>
             <div className={cn(collapsed ? "lg:hidden" : "")}>
-              <p className="text-sm font-bold leading-none">GudangKu</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Fashion Store WMS</p>
+              <p className="text-sm font-bold leading-none">DashboardRU</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Rumah Ungu WMS</p>
             </div>
           </div>
           {/* Mobile close */}

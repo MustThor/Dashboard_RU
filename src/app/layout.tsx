@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "GudangKu – Fashion Store WMS",
+  title: "DashboardRU – Rumah Ungu WMS",
   description: "Sistem manajemen gudang toko fashion wanita – baju, tas, hijab, skincare",
 };
 

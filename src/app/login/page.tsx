@@ -71,7 +71,7 @@ export default function LoginPage() {
             <Warehouse size={28} />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight">GudangKu</h1>
+            <h1 className="text-2xl font-bold tracking-tight">DashboardRU</h1>
             <p className="text-sm text-muted-foreground">Sistem Manajemen Gudang</p>
           </div>
         </div>
