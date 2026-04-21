@@ -8,7 +8,8 @@ import {
   DollarSign, Tag, Building2,
 } from "lucide-react";
 
-import { formatRupiah, formatTanggalPendek } from "@/lib/utils";
+import Link from "next/link";
+import { cn, formatRupiah, formatTanggalPendek } from "@/lib/utils";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell, Legend,
@@ -34,23 +35,27 @@ const statusVariant: Record<string, "success"|"warning"|"destructive"|"info"|"se
   DIKIRIM:"success", DIKEMAS:"info", DISETUJUI:"success",
 };
 
-function StatCard({ title, value, icon, sub }: {
-  title: string; value: string | number; icon: React.ReactNode; sub?: string;
+function StatCard({ title, value, icon, sub, href }: {
+  title: string; value: string | number; icon: React.ReactNode; sub?: string; href?: string;
 }) {
-  return (
-    <Card>
-      <CardContent className="p-4 md:p-5">
-        <div className="flex items-center justify-between">
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-muted-foreground truncate">{title}</p>
-            <p className="mt-0.5 text-xl md:text-2xl font-bold">{value}</p>
-            {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
-          </div>
-          <div className="hidden md:flex ml-3 h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            {icon}
-          </div>
+  const content = (
+    <CardContent className="p-4 md:p-5">
+      <div className="flex items-center justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-muted-foreground truncate">{title}</p>
+          <p className="mt-0.5 text-xl md:text-2xl font-bold">{value}</p>
+          {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
         </div>
-      </CardContent>
+        <div className="hidden md:flex ml-3 h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+          {icon}
+        </div>
+      </div>
+    </CardContent>
+  );
+
+  return (
+    <Card className={cn(href && "hover:shadow-md transition-shadow group cursor-pointer hover:border-primary/50")}>
+      {href ? <Link href={href} className="block w-full">{content}</Link> : content}
     </Card>
   );
 }
@@ -85,16 +90,16 @@ export default function DashboardPage() {
     <div className="space-y-5">
       {/* ── Stats row 1 ── */}
       <div className="grid grid-cols-3 gap-3">
-        <StatCard title="Total Barang"        value={stats.totalItems}    icon={<Package size={20}/>}      sub={`${stats.totalCategories} kategori`} />
-        <StatCard title="Masuk Hari Ini"      value={stats.inboundToday}  icon={<TruckIcon size={20}/>}   sub="transaksi masuk" />
-        <StatCard title="Keluar Hari Ini"     value={stats.outboundToday} icon={<PackageOpen size={20}/>} sub="transaksi keluar" />
+        <StatCard title="Total Barang"        value={stats.totalItems}    icon={<Package size={20}/>}      sub={`${stats.totalCategories} kategori`} href="/dashboard/inventaris" />
+        <StatCard title="Masuk Hari Ini"      value={stats.inboundToday}  icon={<TruckIcon size={20}/>}   sub="transaksi masuk" href="/dashboard/barang-masuk" />
+        <StatCard title="Keluar Hari Ini"     value={stats.outboundToday} icon={<PackageOpen size={20}/>} sub="transaksi keluar" href="/dashboard/barang-keluar" />
       </div>
 
       {/* ── Stats row 2 ── */}
       <div className="grid grid-cols-3 gap-3">
-        <StatCard title="Stok Rendah / Habis" value={stats.lowStockCount}     icon={<AlertTriangle size={20}/>} sub="perlu restock" />
-        <StatCard title="Kategori"             value={stats.totalCategories}   icon={<Tag size={20}/>} />
-        <StatCard title="Supplier"             value={stats.totalSuppliers}    icon={<Building2 size={20}/>} />
+        <StatCard title="Stok Rendah / Habis" value={stats.lowStockCount}     icon={<AlertTriangle size={20}/>} sub="perlu restock" href="/dashboard/inventaris" />
+        <StatCard title="Kategori"             value={stats.totalCategories}   icon={<Tag size={20}/>} href="/dashboard/kategori" />
+        <StatCard title="Supplier"             value={stats.totalSuppliers}    icon={<Building2 size={20}/>} href="/dashboard/supplier" />
       </div>
 
       {/* ── Charts ── */}
