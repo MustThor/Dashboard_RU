@@ -75,12 +75,12 @@ export async function GET() {
       months[key] = { masuk: 0, keluar: 0 };
     }
 
-    monthlyInbound.forEach((ib) => {
+    monthlyInbound.forEach((ib: { date: Date; totalValue: number }) => {
       const key = `${ib.date.getFullYear()}-${String(ib.date.getMonth() + 1).padStart(2, "0")}`;
       if (months[key]) months[key].masuk += 1;
     });
 
-    monthlyOutbound.forEach((ob) => {
+    monthlyOutbound.forEach((ob: { date: Date; totalValue: number }) => {
       const key = `${ob.date.getFullYear()}-${String(ob.date.getMonth() + 1).padStart(2, "0")}`;
       if (months[key]) months[key].keluar += 1;
     });
@@ -113,11 +113,11 @@ export async function GET() {
         },
         recentInbound,
         recentOutbound,
-        itemsByCategory: itemsByCategory.map((c) => ({
+        itemsByCategory: itemsByCategory.map((c: { name: string; _count: { items: number } }) => ({
           name: c.name,
           jumlah: c._count.items,
         })),
-        locationCapacity: locationCapacity.map((l) => ({
+        locationCapacity: locationCapacity.map((l: { name: string; capacity: number; used: number; type: string }) => ({
           name: l.name,
           kapasitas: l.capacity,
           terpakai: l.used,
