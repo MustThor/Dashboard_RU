@@ -255,8 +255,8 @@ export default function StokOpnamePage() {
                   </Button>
                 </div>
 
-                {/* Column headers */}
-                <div className="grid grid-cols-[1fr_75px_75px_28px] sm:grid-cols-[1fr_90px_90px_32px] gap-1.5 sm:gap-2 px-1">
+                {/* Column headers (Desktop only) */}
+                <div className="hidden sm:grid grid-cols-[1fr_90px_90px_32px] gap-2 px-1">
                   <span className="text-[11px] text-muted-foreground">Barang</span>
                   <span className="text-[11px] text-muted-foreground truncate">Stok Sistem</span>
                   <span className="text-[11px] text-muted-foreground truncate">Stok Fisik</span>
@@ -265,28 +265,42 @@ export default function StokOpnamePage() {
 
                 <div className="space-y-2">
                   {rows.map((row, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_75px_75px_28px] sm:grid-cols-[1fr_90px_90px_32px] gap-1.5 sm:gap-2 items-center">
-                      <select
-                        className="h-9 rounded-md border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-ring"
-                        value={row.itemId} onChange={e => handleRowChange(idx, "itemId", e.target.value)} required
-                      >
-                        <option value="">Pilih barang...</option>
-                        {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-                      </select>
-                      <Input
-                        type="number" min={0} value={row.systemStock}
-                        onChange={e => handleRowChange(idx, "systemStock", e.target.value)}
-                        className="h-9 text-sm" placeholder="Sistem"
-                      />
-                      <Input
-                        type="number" min={0} value={row.physicalStock}
-                        onChange={e => handleRowChange(idx, "physicalStock", e.target.value)}
-                        className="h-9 text-sm" placeholder="Fisik"
-                      />
-                      <button type="button" onClick={() => removeRow(idx)} disabled={rows.length === 1}
-                        className="flex h-9 w-8 items-center justify-center text-muted-foreground hover:text-destructive disabled:opacity-30 cursor-pointer">
-                        <Trash2 size={14} />
-                      </button>
+                    <div key={idx} className="flex flex-col sm:grid sm:grid-cols-[1fr_90px_90px_32px] gap-2 sm:items-start border sm:border-0 rounded-md p-3 sm:p-0 mb-2 sm:mb-0">
+                      <div className="flex gap-2 items-center">
+                        <select
+                          className="flex-1 min-w-0 h-9 rounded-md border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-ring"
+                          value={row.itemId} onChange={e => handleRowChange(idx, "itemId", e.target.value)} required
+                        >
+                          <option value="">Pilih barang...</option>
+                          {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+                        </select>
+                        <button type="button" onClick={() => removeRow(idx)} disabled={rows.length === 1}
+                          className="flex sm:hidden h-9 w-8 items-center justify-center text-muted-foreground hover:text-destructive disabled:opacity-30 cursor-pointer shrink-0">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                      <div className="flex sm:contents gap-2 items-start">
+                        <div className="flex-1 sm:w-auto">
+                          <Input
+                            type="number" min={0} value={row.systemStock}
+                            onChange={e => handleRowChange(idx, "systemStock", e.target.value)}
+                            className="h-9 w-full text-sm" placeholder="Sistem"
+                          />
+                          <span className="sm:hidden text-[10px] text-muted-foreground pl-1 mt-0.5 block">Sistem</span>
+                        </div>
+                        <div className="flex-1 sm:w-auto">
+                          <Input
+                            type="number" min={0} value={row.physicalStock}
+                            onChange={e => handleRowChange(idx, "physicalStock", e.target.value)}
+                            className="h-9 w-full text-sm" placeholder="Fisik"
+                          />
+                          <span className="sm:hidden text-[10px] text-muted-foreground pl-1 mt-0.5 block">Fisik</span>
+                        </div>
+                        <button type="button" onClick={() => removeRow(idx)} disabled={rows.length === 1}
+                          className="hidden sm:flex h-9 w-8 items-center justify-center text-muted-foreground hover:text-destructive disabled:opacity-30 cursor-pointer shrink-0">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
