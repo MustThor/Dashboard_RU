@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -65,7 +65,7 @@ const EMPTY_FORM: ItemFormData = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function InventarisPage() {
+function InventarisContent() {
   const [items, setItems]                   = useState<Item[]>([]);
   const [categories, setCategories]         = useState<Category[]>([]);
   const [locations, setLocations]           = useState<Location[]>([]);
@@ -719,5 +719,18 @@ export default function InventarisPage() {
         </>
       )}
     </>
+  );
+}
+
+export default function InventarisPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground">Memuat data barang...</p>
+      </div>
+    }>
+      <InventarisContent />
+    </Suspense>
   );
 }

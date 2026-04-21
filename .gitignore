@@ -51,3 +51,14 @@ prisma/*.db-shm
 *.db-journal
 *.db-wal
 *.db-shm
+
+# AI agent instruction files (local only)
+AGENTS.md
+CLAUDE.md
+
+# Build cache (generated, not needed in repo)
+tsconfig.tsbuildinfo
+
+# Temporary deployment/migration scripts
+push-turso.mjs
+setup.sql
